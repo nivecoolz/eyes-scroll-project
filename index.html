@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Eyes-Open Scroll Control</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      line-height: 1.6;
+      background: #f9f9f9;
+    }
+    .content {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+    video {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 200px;
+      border: 2px solid #ccc;
+    }
+    h1 {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <video autoplay muted playsinline></video>
+  <div class="content">
+    <h1>Terms & Conditions</h1>
+    <div class="notice">
+      Scroll is locked until your eyes are detected as **open**.
+    </div>
+
+    <!-- Fake legal text -->
+    <h2>1. Introduction</h2>
+    <p>
+      These Terms and Conditions govern your use of this website and any services offered herein. 
+      By accessing this site, you agree to comply with and be bound by these Terms. If you disagree 
+      with any part of these Terms, you must not use this site.
+    </p>
+
+    <h2>2. Intellectual Property Rights</h2>
+    <p>
+      Unless otherwise stated, all content, design elements, logos, graphics, and other materials 
+      on this site are the intellectual property of the site owners. You may not reproduce, distribute, 
+      or use any material without express written permission.
+    </p>
+
+    <h2>3. User Obligations</h2>
+    <p>
+      You agree not to use this website in any way that may cause damage to the website or impair 
+      the availability or accessibility of the website. You also agree not to engage in any activity 
+      that is unlawful, fraudulent, or harmful.
+    </p>
+
+    <h2>4. Limitation of Liability</h2>
+    <p>
+      In no event shall we be liable for any indirect, incidental, special, consequential, or punitive 
+      damages, including loss of profits, data, or goodwill, arising from your use of the website.
+    </p>
+
+    <h2>5. Privacy Policy</h2>
+    <p>
+      Your privacy is important to us. Please refer to our Privacy Policy for information about 
+      how we collect, use, and disclose your personal data.
+    </p>
+
+    <h2>6. Governing Law</h2>
+    <p>
+      These Terms will be governed by and construed in accordance with the laws of the jurisdiction 
+      in which our company is established, without regard to conflict of law principles.
+    </p>
+
+    <h2>7. Changes to Terms</h2>
+    <p>
+      We reserve the right to modify these Terms at any time. Updated versions will be posted 
+      on this page, and continued use of the site constitutes acceptance of the updated Terms.
+    </p>
+
+    <!-- Repeat filler to make it scrollable -->
+    <h2>8. Additional Clauses</h2>
+    <p>
+      This section intentionally contains repeated placeholder text to simulate a lengthy legal 
+      document. The purpose is to demonstrate the scrolling restriction feature based on eye 
+      detection technology. Please read this carefully and thoroughly.  
+    </p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eget nunc a nisl blandit aliquet. 
+      Nullam eget ligula non elit imperdiet cursus. Integer sed sem non tortor volutpat sodales.
+    </p>
+    <p>
+      Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. 
+      Vivamus tempor ex a dui vehicula, eget tincidunt velit aliquet.
+    </p>
+    <p>
+      Fusce sed orci vel diam scelerisque dapibus. Sed ac quam vitae orci fermentum dictum nec nec nulla.
+    </p>
+    <p>
+      Donec laoreet sapien vitae sapien dignissim tristique. Nam in nibh nec nulla facilisis tincidunt.
+    </p>
+    <p>
+      Curabitur egestas felis sed nisl suscipit, ac feugiat tortor viverra. Mauris malesuada lorem id 
+      lectus blandit, at luctus turpis vestibulum.
+    </p>
+    <p>
+      Etiam et neque sit amet ligula efficitur posuere. Donec id neque ac est cursus scelerisque.
+    </p>
+    <p>
+      Vivamus congue risus eu est ullamcorper, vel convallis nibh viverra. Suspendisse potenti.
+    </p>
+    <p>
+      In eget sem vitae lectus fermentum dignissim. Sed ornare odio vitae ante dictum tristique.
+    </p>
+    <p>
+      Sed a diam non mauris egestas sodales. Duis ullamcorper sapien in nisl lacinia ultrices.
+    </p>
+    <p>
+      Aenean commodo orci in ligula facilisis egestas. Morbi gravida sapien vel arcu bibendum varius.
+    </p>
+    <p>
+      Donec fermentum ex nec neque fermentum, in bibendum leo dictum.
+    </p>
+
+    <h2>9. Acceptance</h2>
+    <p>
+      By continuing to use this site, you acknowledge that you have read, understood, and agree 
+      to these Terms and Conditions.
+    </p>
+    <p>
+      End of Terms.
+    </p>
+  </div>
+
+  <!-- MediaPipe scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+  <script>
+    const videoElement = document.querySelector('video');
+    let scrollLocked = true;
+
+    function preventScroll(e) {
+      // Always prevent wheel and touchmove
+      if (e.type === 'wheel' || e.type === 'touchmove') {
+        e.preventDefault();
+      }
+      // Only prevent scroll keys for keydown
+      if (e.type === 'keydown') {
+        const keys = [
+          'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+          'PageUp', 'PageDown', 'Home', 'End', ' ',
+        ];
+        if (keys.includes(e.key)) {
+          e.preventDefault();
+        }
+      }
+    }
+
+    function disableScroll() {
+      document.body.style.overflow = 'hidden';
+      scrollLocked = true;
+    }
+
+    function enableScroll() {
+      document.body.style.overflow = '';
+      scrollLocked = false;
+    }
+
+    // Lock scroll at start
+    disableScroll();
+
+    function eyeAspectRatio(landmarks, eyeIndices) {
+      const p1 = landmarks[eyeIndices[0]];
+      const p2 = landmarks[eyeIndices[1]];
+      const p3 = landmarks[eyeIndices[2]];
+      const p4 = landmarks[eyeIndices[3]];
+      const p5 = landmarks[eyeIndices[4]];
+      const p6 = landmarks[eyeIndices[5]];
+
+      const vertical1 = Math.hypot(p2.x - p6.x, p2.y - p6.y);
+      const vertical2 = Math.hypot(p3.x - p5.x, p3.y - p5.y);
+      const horizontal = Math.hypot(p1.x - p4.x, p1.y - p4.y);
+
+      return (vertical1 + vertical2) / (2.0 * horizontal);
+    }
+
+    const LEFT_EYE = [33, 160, 158, 133, 153, 144];
+    const RIGHT_EYE = [263, 387, 385, 362, 380, 373];
+    const EAR_THRESHOLD = 0.25;
+
+    const faceMesh = new FaceMesh({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+    });
+
+    faceMesh.setOptions({
+      maxNumFaces: 1,
+      refineLandmarks: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    faceMesh.onResults(results => {
+      if (results.multiFaceLandmarks.length > 0) {
+        const landmarks = results.multiFaceLandmarks[0];
+
+        const leftEAR = eyeAspectRatio(landmarks, LEFT_EYE);
+        const rightEAR = eyeAspectRatio(landmarks, RIGHT_EYE);
+
+        if (leftEAR > EAR_THRESHOLD && rightEAR > EAR_THRESHOLD) {
+          enableScroll();
+        } else {
+          disableScroll();
+        }
+      }
+    });
+
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await faceMesh.send({ image: videoElement });
+      },
+      width: 640,
+      height: 480
+    });
+    camera.start();
+  </script>
+</body>
+</html>
